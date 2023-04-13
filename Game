@@ -1,0 +1,96 @@
+# Rock-paper-scissors
+// Initialize player profile
+let player = {
+  name: "Player 1",
+  changeName: function(newName) {
+    this.name = newName;
+    console.log(`Your new name is ${this.name}.`);
+  }
+};
+
+// Initialize game data
+let gameData = {
+  rounds: 1,
+  userScore: 0,
+  opponentScore: 0,
+  result: ""
+};
+
+// Initialize Bluetooth variables
+let bluetoothDevice;
+let bluetoothServer;
+
+// Function to start the game
+function startGame() {
+  console.log(`Welcome to Empire, ${player.name}!`);
+
+  // Check if we have a Bluetooth connection
+  if (!bluetoothDevice) {
+    console.log("No Bluetooth connection found. Starting single player game...");
+    singlePlayerGame();
+    return;
+  }
+
+  // Wait for a Bluetooth message to start the game
+  console.log("Waiting for game start signal...");
+  bluetoothServer.getPrimaryService(serviceUuid)
+    .then(service => service.getCharacteristic(characteristicUuid))
+    .then(characteristic => {
+      characteristic.startNotifications();
+      characteristic.addEventListener("characteristicvaluechanged", event => {
+        let message = new TextDecoder().decode(event.target.value);
+        if (message === "start") {
+          console.log("Starting game...");
+          startMultiplayerGame();
+        }
+      });
+    })
+    .catch(error => console.error(error));
+}
+
+// Function to play a single player game
+function singlePlayerGame() {
+  while (gameData.rounds <= 7) {
+    // Get user choice
+    let userChoice = prompt(`Round ${gameData.rounds}: ${player.name}, choose rock, paper, or scissors:`);
+    userChoice = userChoice.toLowerCase();
+
+    // Generate opponent choice
+    let opponentChoice = Math.random();
+    if (opponentChoice < 0.34) {
+      opponentChoice = "rock";
+    } else if (opponentChoice <= 0.67) {
+      opponentChoice = "paper";
+    } else {
+      opponentChoice = "scissors";
+    }
+
+    // Compare choices and determine a winner
+    if (userChoice === opponentChoice) {
+      gameData.result = "The round is a tie!";
+    } else if (userChoice === "rock") {
+      gameData.result = (opponentChoice === "scissors") ? "You win!" : "You lose!";
+    } else if (userChoice === "paper") {
+      gameData.result = (opponentChoice === "rock") ? "You win!" : "You lose!";
+    } else if (userChoice === "scissors") {
+      gameData.result = (opponentChoice === "paper") ? "You win!" : "You lose!";
+    } else {
+      gameData.result = "Invalid input. Please choose rock, paper, or scissors.";
+    }
+
+    // Update scores and display result
+    if (gameData.result === "You win!") {
+      gameData.userScore++;
+    } else if (gameData.result === "You lose!") {
+      gameData.opponentScore++;
+    }
+    console.log(`You chose ${userChoice}. Opponent chose ${opponentChoice}. ${gameData.result}\n\nCurrent score: You ${gameData.userScore}, Opponent ${gameData.opponentScore}`);
+
+    // Advance to next round
+    gameData.rounds++;
+  }
+
+  // Determine the winner of the game
+  if (gameData.userScore > gameData.opponentScore) {
+    gameData.result = `Congratulations, ${player.name}! You won Empire!`;
+  } else if (gameData.userScore < gameData.opponent
